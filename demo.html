@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
+<title>Form with Local Storage</title>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    button {
+        margin-right: 5px;
+    }
+</style>
+</head>
+<body>
+    <div class="navbar">
+    <a href="#" onclick="viewData()">View Data</a>
+    <a href="#" onclick="printData()">Print Data</a>
+    <a href="#" onclick="downloadData()">Download Data</a>
+</div>
+
+<div>
+    <button onclick="exportToExcel()">Export to Excel</button>
+    <button onclick="viewInTable()">View Data in Table</button>
+</div>
+
+<h2>Company Information</h2>
+<form id="companyForm">
+    <label for="companyName">Company Name:</label><br>
+    <input type="text" id="companyName" name="companyName"><br>
+    <label for="firstName">First Name:</label><br>
+    <input type="text" id="firstName" name="firstName"><br>
+    <label for="lastName">Last Name:</label><br>
+    <input type="text" id="lastName" name="lastName"><br>
+    <label for="address">Address:</label><br>
+    <input type="text" id="address" name="address"><br>
+    <label for="pincode">Pincode:</label><br>
+    <input type="text" id="pincode" name="pincode"><br>
+    <label for="city">City:</label><br>
+    <input type="text" id="city" name="city"><br>
+    <label for="state">State:</label><br>
+    <input type="text" id="state" name="state"><br>
+    <label for="country">Country:</label><br>
+    <input type="text" id="country" name="country"><br>
+    <label for="mobileNumber">Mobile Number:</label><br>
+    <input type="text" id="mobileNumber" name="mobileNumber"><br>
+    <label for="phoneNumber">Phone Number:</label><br>
+    <input type="text" id="phoneNumber" name="phoneNumber"><br>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+    </div><br>
+    <label for="industryType">Industry Type:</label><br>
+    <select id="industryType" name="industryType">
+        <option value="IT">IT</option>
+        <option value="Finance">Finance</option>
+        <option value="Healthcare">Healthcare</option>
+        <!-- Add more options as needed -->
+    </select><br>
+    <label for="language">Language:</label><br>
+    <select id="language" name="language">
+        <option value="English">English</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+        <!-- Add more options as needed -->
+    </select><br>
+    <label for="paymentStatus">Payment Status:</label><br>
+    <select id="paymentStatus" name="paymentStatus">
+        <option value="Paid">Paid</option>
+        <option value="Unpaid">Unpaid</option>
+    </select><br><br>
+    <button type="button" id="submitButton" onclick="submitForm()">Submit</button>
+</form>
+
+<h2>Inquiry Form</h2>
+<div>
+    <button onclick="printData()">Print</button>
+    <button onclick="downloadData()">Download</button>
+</div>
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Contact</th>
+            <th>Industry Type</th>
+            <th>Language</th>
+            <th>Payment Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    let editIndex = -1; // Variable to track the index of the entry being edited
+
+    // Function to submit form data
+    function submitForm() {
+        const companyName = document.getElementById("companyName").value;
+        const firstName = document.getElementById("firstName").value;
+        const lastName = document.getElementById("lastName").value;
+        const address = document.getElementById("address").value;
+        const pincode = document.getElementById("pincode").value;
+        const city = document.getElementById("city").value;
+        const state = document.getElementById("state").value;
+        const country = document.getElementById("country").value;
+        const mobileNumber = document.getElementById("mobileNumber").value;
+        const phoneNumber = document.getElementById("phoneNumber").value;
+        const email = document.getElementById("email").value;
+        const industryType = document.getElementById("industryType").value;
+        const language = document.getElementById("language").value;
+        const paymentStatus = document.getElementById("paymentStatus").value;
+
+        const formData = {
+            companyName,
+            firstName,
+            lastName,
+            address,
+            pincode,
+            city,
+            state,
+            country,
+            mobileNumber,
+            phoneNumber,
+            email,
+            industryType,
+            language,
+            paymentStatus
+        };
+
+        let data = JSON.parse(localStorage.getItem('formData')) || [];
+
+        if (editIndex === -1) {
+            // Add new data
+            data.push(formData);
+        } else {
+            // Edit existing data
+            data[editIndex] = formData;
+            editIndex = -1;
+            document.getElementById("submitButton").textContent = "Submit";
+        }
+
+        localStorage.setItem('formData', JSON.stringify(data));
+        document.getElementById("companyForm").reset();
+        updateDataView();
+    }
+
+    // Function to update data view
+    // Function to update data view
+function updateDataView() {
+    const data = JSON.parse(localStorage.getItem('formData')) || [];
+    const tbody = document.getElementById("dataTable").querySelector("tbody");
+    tbody.innerHTML = "";
+
+    data.forEach((item, index) => {
+        const row = tbody.insertRow();
+
+        // Insert company name, name, address, and contact fields
+        row.insertCell().textContent = item.companyName;
+        row.insertCell().textContent = `${item.firstName} ${item.lastName}`;
+        row.insertCell().textContent = `${item.address}, ${item.city}, ${item.state}, ${item.country}, ${item.pincode}`;
+        row.insertCell().textContent = `${item.mobileNumber}, ${item.phoneNumber}`;
+
+        // Create a separate row for the email field
+        const emailRow = tbody.insertRow();
+        const emailCell = emailRow.insertCell();
+        emailCell.colSpan = 4;
+        emailCell.innerHTML = `<strong>Email:</strong> ${item.email}`;
+        emailRow.classList.add("email-row");
+
+        // Insert industry type, language, payment status, and actions fields
+        row.insertCell().textContent = item.industryType;
+        row.insertCell().textContent = item.language;
+        row.insertCell().textContent = item.paymentStatus;
+
+        const actionsCell = row.insertCell();
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = () => editEntry(index);
+        actionsCell.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteEntry(index);
+        actionsCell.appendChild(deleteButton);
+    });
+}
+
+
+    // Function to edit an entry
+    function editEntry(index) {
+        const data = JSON.parse(localStorage.getItem('formData'));
+        const item = data[index];
+        
+        document.getElementById("companyName").value = item.companyName;
+        document.getElementById("firstName").value = item.firstName;
+        document.getElementById("lastName").value = item.lastName;
+        document.getElementById("address").value = item.address;
+        document.getElementById("pincode").value = item.pincode;
+        document.getElementById("city").value = item.city;
+        document.getElementById("state").value = item.state;
+        document.getElementById("country").value = item.country;
+        document.getElementById("mobileNumber").value = item.mobileNumber;
+        document.getElementById("phoneNumber").value = item.phoneNumber;
+        document.getElementById("email").value = item.email;
+        document.getElementById("industryType").value = item.industryType;
+        document.getElementById("language").value = item.language;
+        document.getElementById("paymentStatus").value = item.paymentStatus;
+
+        editIndex = index;
+        document.getElementById("submitButton").textContent = "Update";
+    }
+
+    // Function to delete an entry
+    function deleteEntry(index) {
+        let data = JSON.parse(localStorage.getItem('formData'));
+        data.splice(index, 1);
+        localStorage.setItem('formData', JSON.stringify(data));
+        updateDataView();
+    }
+
+    // Function to print data
+    // Function to print data in table format
+function printData() {
+    const data = JSON.parse(localStorage.getItem('formData')) || [];
+    let printContent = '<h2>Inquiry Form Data</h2><table border="1">';
+    printContent += `
+        <tr>
+            <th>Company Name</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Contact</th>
+            <th>Industry Type</th>
+            <th>Language</th>
+            <th>Payment Status</th>
+        </tr>
+    `;
+    data.forEach((item, index) => {
+        printContent += `
+            <tr>
+                <td>${item.companyName}</td>
+                <td>${item.firstName} ${item.lastName}</td>
+                <td>${item.address}, ${item.city}, ${item.state}, ${item.country}, ${item.pincode}</td>
+                <td>${item.mobileNumber}, ${item.phoneNumber}, ${item.email}</td>
+                <td>${item.industryType}</td>
+                <td>${item.language}</td>
+                <td>${item.paymentStatus}</td>
+            </tr>
+        `;
+    });
+    printContent += '</table>';
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write('<html><head><title>Print Data</title></head><body>' + printContent + '</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
+
+
+
+// Function to export data to Excel
+function exportToExcel() {
+    const data = JSON.parse(localStorage.getItem('formData')) || [];
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'FormData');
+    XLSX.writeFile(workbook, 'formData.xlsx');
+}
+
+// Function to view data in a table
+function viewInTable() {
+    const data = JSON.parse(localStorage.getItem('formData')) || [];
+    const tbody = document.getElementById("dataTable").querySelector("tbody");
+    tbody.innerHTML = "";
+
+    data.forEach((item, index) => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = item.companyName;
+        row.insertCell().textContent = `${item.firstName} ${item.lastName}`;
+        row.insertCell().textContent = `${item.address}, ${item.city}, ${item.state}, ${item.country}, ${item.pincode}`;
+        row.insertCell().textContent = `${item.mobileNumber}, ${item.phoneNumber}, ${item.email}`;
+        row.insertCell().textContent = item.industryType;
+        row.insertCell().textContent = item.language;
+        row.insertCell().textContent = item.paymentStatus;
+
+        const actionsCell = row.insertCell();
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = () => editEntry(index);
+        actionsCell.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteEntry(index);
+        actionsCell.appendChild(deleteButton);
+    });
+}
+
+
+
+    // Function to download data
+    function downloadData() {
+        const data = JSON.parse(localStorage.getItem('formData')) || [];
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'formData.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // Call updateDataView initially to load existing data
+    updateDataView();
+</script>
+
+</body>
+</html>
